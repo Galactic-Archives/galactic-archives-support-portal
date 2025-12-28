@@ -9,7 +9,5 @@ export default defineConfig({
     port: 3000,
       },
     build: {
-          minify: 'esbuild',
-          rollupOptions: { output: { manualChunks: undefined } }
-  },
+          minify: 'esbuild,
 })
