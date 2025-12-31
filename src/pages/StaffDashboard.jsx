@@ -1,7 +1,7 @@
 // src/pages/StaffDashboard.jsx
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import './Dashboard.css
+import './Dashboard.css'
   'import { kbApi, ticketsApi, docsApi } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 
