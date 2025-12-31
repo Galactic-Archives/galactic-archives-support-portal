@@ -2,7 +2,7 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import './Dashboard.css'
-import { kbApi, ticketsApi, docsApi } from '../utils/api'
+import { kbApi, ticketsApi, docsApi } from './utils/api'
 
 function StaffKB() {
   const [articles, setArticles] = useState([])
