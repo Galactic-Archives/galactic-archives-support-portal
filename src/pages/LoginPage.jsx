@@ -1,92 +1,72 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import './Pages.css'
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+import { supabase } from '../utils/supabase'
+import '../Pages.css'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState({})
-  const [localError, setLocalError] = useState('')
-  const { login, loading, error } = useAuth()
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
-
-  function validate() {
-    const nextErrors = {}
-
-    if (!email.trim()) {
-      nextErrors.email = 'Email is required'
-    } else if (!emailRegex.test(email.trim())) {
-      nextErrors.email = 'Enter a valid email address'
-    }
-
-    if (!password) {
-      nextErrors.password = 'Password is required'
-    }
-
-    setErrors(nextErrors)
-    return Object.keys(nextErrors).length === 0
-  }
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setLocalError('')
-    if (!validate()) return
+    setErrors({})
+    setLoading(true)
 
     try {
-      await login(email.trim(), password)
-      navigate('/student')
-    } catch {
-      setLocalError('Login failed. Check your credentials.')
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) throw error
+
+      // Redirect to dashboard after successful login
+      navigate('/dashboard')
+    } catch (error) {
+      setErrors({ general: error.message })
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
     <div className="auth-page">
-      <div className="auth-form">
-        <h2>Mission Initiation</h2>
-
-        {(error || localError) && (
-          <div className="auth-error">{error || localError}</div>
-        )}
-
-        <form onSubmit={handleSubmit} noValidate>
+      <div className="auth-container">
+        <h1>Login</h1>
+        {errors.general && <div className="error-message">{errors.general}</div>}
+        
+        <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="email">Explorer ID (Email)</label>
+            <label>Email</label>
             <input
-              id="email"
               type="email"
-              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              required
             />
-            {errors.email && <p className="field-error">{errors.email}</p>}
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Access Code (Password)</label>
+            <label>Password</label>
             <input
-              id="password"
               type="password"
-              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              required
             />
-            {errors.password && <p className="field-error">{errors.password}</p>}
           </div>
 
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Initiating…' : 'Enter Command Console'}
+          <button type="submit" disabled={loading}>
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
 
-        <div className="auth-link">
-          New explorer? <Link to="/register">Register here</Link>
-        </div>
+        <p className="auth-link">
+          Don't have an account? <Link to="/register">Register</Link>
+        </p>
       </div>
     </div>
   )
