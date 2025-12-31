@@ -1,137 +1,93 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import './Pages.css'
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const MIN_PASSWORD = 6
+import { supabase } from '../utils/supabase'
+import '../Pages.css'
 
 export default function RegisterPage() {
-  const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+  const [displayName, setDisplayName] = useState('')
   const [errors, setErrors] = useState({})
-  const [localError, setLocalError] = useState('')
-  const { register, loading, error } = useAuth()
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState('')
   const navigate = useNavigate()
-
-  function validate() {
-    const nextErrors = {}
-
-    if (!displayName.trim()) {
-      nextErrors.displayName = 'Name is required'
-    }
-
-    if (!email.trim()) {
-      nextErrors.email = 'Email is required'
-    } else if (!emailRegex.test(email.trim())) {
-      nextErrors.email = 'Enter a valid email address'
-    }
-
-    if (!password) {
-      nextErrors.password = 'Password is required'
-    } else if (password.length < MIN_PASSWORD) {
-      nextErrors.password = `Password must be at least ${MIN_PASSWORD} characters`
-    }
-
-    if (!confirmPassword) {
-      nextErrors.confirmPassword = 'Please confirm your password'
-    } else if (confirmPassword !== password) {
-      nextErrors.confirmPassword = 'Passwords do not match'
-    }
-
-    setErrors(nextErrors)
-    return Object.keys(nextErrors).length === 0
-  }
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setLocalError('')
-    if (!validate()) return
+    setErrors({})
+    setMessage('')
+    setLoading(true)
 
     try {
-      await register(email.trim(), password, displayName.trim())
-      navigate('/student')
-    } catch {
-      setLocalError('Registration failed. Try a different email.')
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: displayName,
+          },
+        },
+      })
+
+      if (error) throw error
+
+      setMessage('Check your email for the confirmation link!')
+      // Optionally redirect after a delay
+      setTimeout(() => navigate('/login'), 3000)
+    } catch (error) {
+      setErrors({ general: error.message })
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
     <div className="auth-page">
-      <div className="auth-form">
-        <h2>Begin Your Expedition</h2>
-
-        {(error || localError) && (
-          <div className="auth-error">{error || localError}</div>
-        )}
-
-        <form onSubmit={handleSubmit} noValidate>
+      <div className="auth-container">
+        <h1>Create Account</h1>
+        {message && <div className="success-message">{message}</div>}
+        {errors.general && <div className="error-message">{errors.general}</div>}
+        
+        <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="displayName">Exploration Name</label>
+            <label>Display Name</label>
             <input
-              id="displayName"
               type="text"
-              autoComplete="name"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Your name"
+              required
             />
-            {errors.displayName && (
-              <p className="field-error">{errors.displayName}</p>
-            )}
           </div>
 
           <div className="form-group">
-            <label htmlFor="email">Explorer ID (Email)</label>
+            <label>Email</label>
             <input
-              id="email"
               type="email"
-              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              required
             />
-            {errors.email && <p className="field-error">{errors.email}</p>}
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Access Code (Password)</label>
+            <label>Password</label>
             <input
-              id="password"
               type="password"
-              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              required
+              minLength="6"
             />
-            {errors.password && <p className="field-error">{errors.password}</p>}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Access Code</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
-            />
-            {errors.confirmPassword && (
-              <p className="field-error">{errors.confirmPassword}</p>
-            )}
-          </div>
-
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Registering…' : 'Begin Exploration'}
+          <button type="submit" disabled={loading}>
+            {loading ? 'Creating account...' : 'Register'}
           </button>
         </form>
 
-        <div className="auth-link">
-          Already an explorer? <Link to="/login">Log in here</Link>
-        </div>
+        <p className="auth-link">
+          Already have an account? <Link to="/login">Login</Link>
+        </p>
       </div>
     </div>
   )
