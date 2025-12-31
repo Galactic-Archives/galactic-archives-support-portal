@@ -1,6 +1,6 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import './Dashboard.css'
-import { kbApi, docsApi, ticketsApi } from '../utils/api'
+import { kbApi, docsApi, ticketsApi } from './utils/api'
 import { useEffect, useState } from 'react'
 
 function KBView() {
