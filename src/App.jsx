@@ -3,8 +3,7 @@ import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
-import Dashboard from './pages/Dashboard'
-// ... other imports
+import StaffDashboard from '../pages/StaffDashboard'// ... other imports
 
 function App() {
   return (
@@ -17,8 +16,7 @@ function App() {
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
+                <StaffDashboard />              </ProtectedRoute>
             }
           />
           {/* Add other protected routes similarly */}
