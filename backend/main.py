@@ -5,6 +5,7 @@ from app.core.database import Base, engine
 from app.core.config import settings
 from app.routes import auth, kb, tickets, docs
 
+Base.metadata.drop_all(bind=engine)  # Drop existing tables to recreate with new schema
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -43,6 +44,3 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "ok"}
-
-
-
